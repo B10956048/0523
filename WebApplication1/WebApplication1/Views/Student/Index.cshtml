@@ -1,0 +1,132 @@
+﻿@model IEnumerable<Student>//controller->student的list
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    int total = int.Parse(ViewData["total"].ToString());
+    int pageCount = total / 10 + (total % 10 > 0 ? 1 : 0);
+    int nowPage = int.Parse(ViewData["nowPage"].ToString());
+    int seqNo = 1 + (nowPage - 1) * 10 ;
+
+    string query_studentName = ViewData["query_studentName"]?.ToString();
+    string query_studentNo = ViewData["query_studentNo"]?.ToString();
+    string query_githubLink = ViewData["query_githubLink"]?.ToString();
+}
+<div class = "text-center">
+
+<h1>學生管理</h1>
+
+<form asp-action="Index" class = "card" id = "formIndex">
+    <h5 class = "card-header">查詢條件</h5>
+    <div class ="card-body">
+        <dl class="row">
+            <dt class="col-sm-2">
+                @Html.DisplayName("學生姓名")
+            </dt>
+            <dd class = "col-sm-4">
+                <input type = "text" class = "form-control input-query" name="queryDic[studentName]" value="@query_studentName" />
+            </dd>
+            <dt class = "col-sm-2">
+                @Html.DisplayName("學生學號")
+            </dt>
+            <dd class = "col-sm-4">
+                <input type = "text" class = "form-control input-query" name="queryDic[studentNo]" value="@query_studentNo" />
+            </dd>    
+            <dt class = "col-sm-2">
+                @Html.DisplayName("學生GitHub連結")
+            </dt>
+            <dd class = "col-sm-4">
+                <input type = "text" class = "form-control input-query" name="queryDic[githubLink]" value="@query_githubLink" />
+            </dd> 
+        </dl>
+        <input type = "hidden" name = "nowPage" id="nowPage" value="1" />
+        <input type = "submit" value = "查詢" class = "btn btn-primary" />
+        <input type = "submit" value = "清空" class = "btn btn-outline-primary" id= "btn_clearQuery" />
+    </div>
+</form>
+@*新增資料*@
+<div class = "m-2 float-right">
+    <a class="btn btn-success" asp-action="Create">新增</a>
+</div>
+ 
+<table class="table table-striped mt-4">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">學生名稱</th>
+      <th scope="col">學生學號</th>
+      <th scope="col">GitHub超連結</th>
+      <th scope="col">是否刪除</th>
+      <th scope="col">最後更新時間</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+      @foreach(var item in Model) //第一行宣告的model 
+      {           
+      <tr>
+        <th scope="row">@seqNo</th>
+        <td>@item.studentName</td>
+        <td>@item.studentNo</td>
+        <td>@item.githubLink</td>
+        <td>@item.IsDelete</td>
+        <td>@item.UpdateDateTime</td>
+
+        <td>
+            @Html.ActionLink("修改","Update",new{ studentNo = item.studentNo})
+            @Html.ActionLink("詳細資料","Detail",new{ studentNo = item.studentNo})
+            @Html.ActionLink("刪除","Delete",new{ studentNo = item.studentNo},new {onclick ="return confirm('"+item.studentNo+"確定要刪除?');"})
+        </td>
+      </tr>
+      seqNo++;
+      }
+  </tbody>
+</table>
+    @if (pageCount > 0)
+    {    
+        <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            @if(nowPage > 1)
+            {
+                <li class="page-item"><a class="page-link" asp-action="Index"  data-topage="@(nowPage-1)"> 上一頁 </a></li>
+            }
+            @for (int i = 1; i <= pageCount;i++)
+            {
+                var active = i == nowPage ? "active" : "";
+
+                <li class="page-item @active "><a class="page-link" asp-action="Index"  data-topage="@i">@i</a ></li>
+            }
+            @if(nowPage < pageCount)
+            {
+                <li class="page-item"><a class="page-link" asp-action="Index"  data-topage="@(nowPage+1)">下一頁</a></li>
+            }
+    </ul>
+    </nav>  
+ }
+
+</div>
+
+<script>
+
+var pageitems = document.getElementsByClassName("page-link")
+
+for(i = 0 ; i <pageitems.length;i++){
+    pageitems[i].onclick = function(){
+        let toPage = this.dataset.topage;
+        document.getElementById("nowPage").value = toPage;
+        document.getElementById("formIndex").submit();
+
+        return false;
+    }
+
+    
+}
+
+document.getElementById("btn_clearQuery").onclick = () => {
+    var inputs = document.getElementsByClassName("input-query")
+    for (i  = 0 ; i< inputs.length; i++){
+        inputs[i].value = ""
+    }
+    document.getElementById("formIndex").submit();
+}
+</script>
